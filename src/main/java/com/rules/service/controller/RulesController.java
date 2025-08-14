@@ -17,7 +17,7 @@ public class RulesController {
 
     @PostMapping("/check")
     public Mono<Void> checkPerson(@RequestBody CheckPersonRequestDTO dto) {
-        System.out.println("🔔 Recebido evento para subject=" + dto.subject() + ", cameraId=" + dto.cameraId());
+        System.out.println("🔔 Recebido evento para subject=" + dto.subject() + ", cameraId=" + dto.cameraId() + ", percentual=" + dto.percentual());
         return rulesService.processar(dto)
                 .doOnNext(notificationService::notificar)
                 .then();

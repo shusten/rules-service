@@ -1,23 +1,56 @@
 package com.rules.service.config;
 
+import java.util.Collections;
+import java.util.Map;
+
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
-import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
-import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.web.reactive.HandlerMapping;
+import org.springframework.web.reactive.handler.SimpleUrlHandlerMapping;
+import org.springframework.web.reactive.socket.WebSocketHandler;
+import org.springframework.web.reactive.socket.server.support.WebSocketHandlerAdapter;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rules.service.dto.NotificacaoDTO;
+
+import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Sinks;
 
 @Configuration
-@EnableWebSocketMessageBroker
-public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+@RequiredArgsConstructor
+public class WebSocketConfig {
+    
+    private final ObjectMapper objectMapper;
 
-    @Override
-    public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic");
-        config.setApplicationDestinationPrefixes("/app");
+    @Bean
+    public Sinks.Many<NotificacaoDTO> notificationSink() {
+        return Sinks.many().multicast().onBackpressureBuffer();
     }
 
-    @Override
-    public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws/notificacoes").setAllowedOrigins("*");
+    @Bean
+    public WebSocketHandler webSocketHandler(Sinks.Many<NotificacaoDTO> sink) {
+        return session -> {
+            var messagesToSend = sink.asFlux()
+                .map(dto -> {
+                    try {
+                        String json = objectMapper.writeValueAsString(dto);
+                        return session.textMessage(json);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+            return session.send(messagesToSend);
+        };
+    }
+
+    @Bean
+    public HandlerMapping handlerMapping(WebSocketHandler webSocketHandler) {
+        Map<String, WebSocketHandler> map = Collections.singletonMap("/ws/notificacoes", webSocketHandler);
+        return new SimpleUrlHandlerMapping(map, -1);
+    }
+
+    @Bean
+    public WebSocketHandlerAdapter handlerAdapter() {
+        return new WebSocketHandlerAdapter();
     }
 }

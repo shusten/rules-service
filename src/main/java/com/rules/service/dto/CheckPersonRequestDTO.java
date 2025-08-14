@@ -2,5 +2,6 @@ package com.rules.service.dto;
 
 public record CheckPersonRequestDTO(
         String subject,
-        String cameraId
+        String cameraId,
+        double percentual
 ) {}

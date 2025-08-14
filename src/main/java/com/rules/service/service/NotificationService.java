@@ -2,16 +2,17 @@ package com.rules.service.service;
 
 import com.rules.service.dto.NotificacaoDTO;
 import lombok.RequiredArgsConstructor;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import reactor.core.publisher.Sinks;
+
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
 
-    private final SimpMessagingTemplate messagingTemplate;
+    private final Sinks.Many<NotificacaoDTO> notificacaoSink;
 
     public void notificar(NotificacaoDTO notificacao) {
-        messagingTemplate.convertAndSend("/topic/notificacoes", notificacao);
+        notificacaoSink.tryEmitNext(notificacao);
     }
 }
