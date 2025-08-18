@@ -1,10 +1,13 @@
 package com.rules.service.controller;
 
 import com.rules.service.dto.CheckPersonRequestDTO;
+import com.rules.service.entity.Notificacao;
 import com.rules.service.service.RulesService;
 import com.rules.service.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -15,11 +18,26 @@ public class RulesController {
     private final RulesService rulesService;
     private final NotificationService notificationService;
 
-    @PostMapping("/check")
-    public Mono<Void> checkPerson(@RequestBody CheckPersonRequestDTO dto) {
-        System.out.println("🔔 Recebido evento para subject=" + dto.subject() + ", cameraId=" + dto.cameraId() + ", percentual=" + dto.percentual());
-        return rulesService.processar(dto)
-                .doOnNext(notificationService::notificar)
-                .then();
+    // @PostMapping("/check")
+    // public Mono<Void> checkPerson(@RequestBody CheckPersonRequestDTO dto) {
+    //     System.out.println("🔔 Recebido evento para subject=" + dto.subject() + ", cameraId=" + dto.cameraId() + ", percentual=" + dto.percentual());
+    //     return rulesService.processar(dto)
+    //             .doOnNext(notificationService::notificar)
+    //             .then();
+    // }
+
+    @PostMapping("/cadastrar/notificacoes")
+    public Mono<Notificacao> cadastrarNotificacao(@RequestBody CheckPersonRequestDTO dto) {
+        return notificationService.cadastrarNotificacao(dto);
+    }
+
+    @GetMapping("/notificacoes/{id}")
+    public Mono<Notificacao> buscarNotificacaoPorId(@PathVariable Long id) {
+        return notificationService.buscarNotificacaoPorId(id);
+    }
+
+    @GetMapping("/buscar/notificacoes")
+    public Flux<Notificacao> buscarNotificacoes() {
+        return notificationService.buscarNotificacoes();
     }
 }

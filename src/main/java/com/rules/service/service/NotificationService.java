@@ -1,8 +1,16 @@
 package com.rules.service.service;
 
+import com.rules.service.dto.CheckPersonRequestDTO;
 import com.rules.service.dto.NotificacaoDTO;
+import com.rules.service.entity.Notificacao;
+import com.rules.service.repository.NotificacaoRepository;
+
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.core.publisher.Sinks;
+
+import java.time.Instant;
 
 import org.springframework.stereotype.Service;
 
@@ -10,9 +18,36 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class NotificationService {
 
-    private final Sinks.Many<NotificacaoDTO> notificacaoSink;
+    private final NotificacaoRepository notificacaoRepository;
+    private final Sinks.Many<String> notificacaoSink;
 
-    public void notificar(NotificacaoDTO notificacao) {
-        notificacaoSink.tryEmitNext(notificacao);
+    // public void notificar(NotificacaoDTO notificacao) {
+    //     notificacaoSink.tryEmitNext(notificacao);
+    // }
+
+    public Mono<Notificacao> cadastrarNotificacao(CheckPersonRequestDTO dto) {
+        Notificacao notificacao = new Notificacao();
+        notificacao.setSubject(dto.subject());
+        notificacao.setCameraId(dto.cameraId());
+        notificacao.setPercentual(dto.percentual());
+        notificacao.setStatus("RECONHECIDO");
+        notificacao.setTimestamp(Instant.now().toString());
+
+        return notificacaoRepository.save(notificacao)
+        .doOnSuccess(notificacaoSalva -> {
+            System.out.println("Notificação salva!");
+            String notificacaoFormatada = String.format(
+                "Dados salvos", null);
+            notificacaoSink.tryEmitNext(notificacaoFormatada);
+        });
     }
+
+    public Mono<Notificacao> buscarNotificacaoPorId(Long id) {
+        return notificacaoRepository.findById(id);
+    }
+
+    public Flux<Notificacao> buscarNotificacoes() {
+        return notificacaoRepository.findAll();
+    }
+
 }
