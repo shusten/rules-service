@@ -21,9 +21,10 @@ public class NotificationService {
     private final NotificacaoRepository notificacaoRepository;
     private final Sinks.Many<String> notificacaoSink;
 
-    // public void notificar(NotificacaoDTO notificacao) {
-    //     notificacaoSink.tryEmitNext(notificacao);
-    // }
+    public void notificar(NotificacaoDTO notificacao) {
+        String notificacaoFormatada = String.format("Dados formatados para o check!", null);
+        notificacaoSink.tryEmitNext(notificacaoFormatada);
+    }
 
     public Mono<Notificacao> cadastrarNotificacao(CheckPersonRequestDTO dto) {
         Notificacao notificacao = new Notificacao();
@@ -42,8 +43,8 @@ public class NotificationService {
         });
     }
 
-    public Mono<Notificacao> buscarNotificacaoPorId(Long id) {
-        return notificacaoRepository.findById(id);
+    public Flux<Notificacao> buscarNotificacaoPorSubject(String subject) {
+        return notificacaoRepository.findBySubject(subject);
     }
 
     public Flux<Notificacao> buscarNotificacoes() {

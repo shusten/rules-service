@@ -14,8 +14,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @Table(name = "notificacao")
 public class Notificacao {
-        @Id
-        private Long id;
         private String subject;
         private String cameraId;
         private String status;

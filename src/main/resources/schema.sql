@@ -1,5 +1,4 @@
 CREATE TABLE IF NOT EXISTS notificacao (
-    id BIGSERIAL PRIMARY KEY, 
     subject VARCHAR(255) NOT NULL,
     camera_id VARCHAR(255),
     status VARCHAR(50),
