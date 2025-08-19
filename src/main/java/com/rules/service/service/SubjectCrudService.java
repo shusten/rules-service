@@ -144,14 +144,10 @@ public class SubjectCrudService {
             @Override public String getFilename() { return "subject.jpg"; }
         };
 
-        HttpHeaders fileHeaders = new HttpHeaders();
-        fileHeaders.setContentType(MediaType.IMAGE_JPEG);
-        HttpEntity<ByteArrayResource> filePart = new HttpEntity<>(resource, fileHeaders);
-
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("file", filePart); // chave precisa ser "file"
+        body.add("file", resource);
 
-        HttpHeaders headers = montarHeaders(); // já inclui x-api-key
+        HttpHeaders headers = montarHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
         return new HttpEntity<>(body, headers);

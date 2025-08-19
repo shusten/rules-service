@@ -1,6 +1,5 @@
 package com.rules.service.entity;
 
-import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
 import com.rules.service.dto.NotificacaoDTO;
