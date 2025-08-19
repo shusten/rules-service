@@ -1,16 +1,21 @@
 package com.rules.service.controller;
 
+import com.rules.service.service.SubjectCrudService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import com.rules.service.service.SubjectCrudService;
+import org.springframework.core.io.buffer.DataBufferUtils;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.InputStream;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -21,34 +26,45 @@ public class SubjectController {
 
     private final SubjectCrudService subjectCrudService;
 
-    @PostMapping("/{subjectId}")
-    public ResponseEntity<Void> cadastrar(
+    @PostMapping(value = "/{subjectId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Mono<ResponseEntity<Void>> cadastrar(
             @PathVariable String subjectId,
-            @RequestParam("file") MultipartFile file) {
-        try {
-            BufferedImage imagem = converter(file);
-            subjectCrudService.cadastrarSubject(subjectId, imagem);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            log.error("Erro ao cadastrar subject {}", subjectId, e);
-            return ResponseEntity.badRequest().build();
-        }
+            @RequestPart("file") FilePart file) {
+
+        return DataBufferUtils.join(file.content())
+                .flatMap(data -> Mono.fromCallable(() -> {
+                    byte[] bytes = new byte[data.readableByteCount()];
+                    data.read(bytes);
+                    DataBufferUtils.release(data);
+
+                    BufferedImage img = ImageIO.read(new ByteArrayInputStream(bytes));
+                    if (img == null) throw new IllegalArgumentException("Imagem inválida ou formato não suportado");
+
+                    subjectCrudService.cadastrarSubject(subjectId, img);
+                    return ResponseEntity.ok().<Void>build();
+                }).subscribeOn(Schedulers.boundedElastic()))
+                .onErrorReturn(ResponseEntity.status(HttpStatus.BAD_REQUEST).<Void>build());
     }
 
-    @PutMapping("/{subjectId}")
-    public ResponseEntity<Void> atualizar(
+    @PutMapping(value = "/{subjectId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Mono<ResponseEntity<Void>> atualizar(
             @PathVariable String subjectId,
-            @RequestParam("file") MultipartFile file) {
-        try {
-            BufferedImage imagem = converter(file);
-            subjectCrudService.atualizarSubject(subjectId, imagem);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            log.error("Erro ao atualizar subject {}", subjectId, e);
-            return ResponseEntity.badRequest().build();
-        }
-    }
+            @RequestPart("file") FilePart file) {
 
+        return DataBufferUtils.join(file.content())
+                .flatMap(data -> Mono.fromCallable(() -> {
+                    byte[] bytes = new byte[data.readableByteCount()];
+                    data.read(bytes);
+                    DataBufferUtils.release(data);
+
+                    BufferedImage img = ImageIO.read(new ByteArrayInputStream(bytes));
+                    if (img == null) throw new IllegalArgumentException("Imagem inválida ou formato não suportado");
+
+                    subjectCrudService.atualizarSubject(subjectId, img);
+                    return ResponseEntity.ok().<Void>build();
+                }).subscribeOn(Schedulers.boundedElastic()))
+                .onErrorReturn(ResponseEntity.status(HttpStatus.BAD_REQUEST).<Void>build());
+    }
     @GetMapping("/{subjectId}")
     public ResponseEntity<String> buscar(@PathVariable String subjectId) {
         String body = subjectCrudService.buscarSubject(subjectId);
@@ -65,11 +81,5 @@ public class SubjectController {
     public ResponseEntity<Void> excluir(@PathVariable String subjectId) {
         subjectCrudService.excluirSubject(subjectId);
         return ResponseEntity.noContent().build();
-    }
-
-    private BufferedImage converter(MultipartFile file) throws Exception {
-        try (InputStream is = file.getInputStream()) {
-            return ImageIO.read(is);
-        }
     }
 }

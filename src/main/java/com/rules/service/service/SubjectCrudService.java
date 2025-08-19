@@ -137,22 +137,24 @@ public class SubjectCrudService {
 
     private HttpEntity<MultiValueMap<String, Object>> montarRequisicaoMultipart(BufferedImage imagem) throws Exception {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ImageIO.write(imagem, "jpg", baos);
+        ImageIO.write(imagem, "jpg", baos); // converte pra JPG
         byte[] imagemBytes = baos.toByteArray();
 
         ByteArrayResource resource = new ByteArrayResource(imagemBytes) {
-            @Override
-            public String getFilename() {
-                return "subject.jpg";
-            }
+            @Override public String getFilename() { return "subject.jpg"; }
         };
 
-        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("file", resource);
+        HttpHeaders fileHeaders = new HttpHeaders();
+        fileHeaders.setContentType(MediaType.IMAGE_JPEG);
+        HttpEntity<ByteArrayResource> filePart = new HttpEntity<>(resource, fileHeaders);
 
-        HttpHeaders headers = montarHeaders();
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("file", filePart); // chave precisa ser "file"
+
+        HttpHeaders headers = montarHeaders(); // já inclui x-api-key
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
         return new HttpEntity<>(body, headers);
     }
+
 }
