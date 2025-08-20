@@ -3,7 +3,7 @@ package com.rules.service.service;
 import com.rules.service.dto.CheckPersonRequestDTO;
 import com.rules.service.dto.NotificacaoDTO;
 import com.rules.service.entity.Notificacao;
-import com.rules.service.repository.NotificacaoRepository;
+import com.rules.service.repository.postgres.NotificacaoRepository;
 
 import lombok.RequiredArgsConstructor;
 
