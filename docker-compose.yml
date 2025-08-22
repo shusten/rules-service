@@ -30,9 +30,9 @@ services:
       SPRING_SQL_INIT_MODE: always
 
       # Conexão com o SQL Server Externo
-      SPRING_R2DBC_SQLSERVER_URL: r2dbc:sqlserver://host.docker.internal:1433/Foracesso
-      SPRING_R2DBC_SQLSERVER_USERNAME: seu_usuario_sql_server
-      SPRING_R2DBC_SQLSERVER_PASSWORD: "sua_senha_sql_server"
+      SPRING_R2DBC_SQLSERVER_URL: r2dbc:sqlserver://192.168.1.122:1433/Foracesso
+      SPRING_R2DBC_SQLSERVER_USERNAME: FORACESSO
+      SPRING_R2DBC_SQLSERVER_PASSWORD: FORACESSO
 
 volumes:
   postgres_data:
